@@ -79,6 +79,7 @@ namespace db4o
                 Console.WriteLine();
                 Console.WriteLine("0 -> Wyswietlenie danych");
                 Console.WriteLine("1 -> Wprowadzenie nowej osoby");
+                Console.WriteLine("2 -> Wyszukanie osoby");
                 Console.WriteLine("9 -> WYJSCIE");
                 Console.WriteLine();
 
@@ -172,6 +173,25 @@ namespace db4o
                     {
                         db.Close();
                     }
+                }
+
+                else if (cki.Key == ConsoleKey.D2) //szukanie osoby
+                {
+                    Console.Clear();
+                    var person = new Person();
+                    Console.WriteLine("Podaj dane szukanej osoby.");
+                    Console.WriteLine("Imie: ");
+                    person.Imie = Console.ReadLine();
+                    Console.WriteLine("Nazwisko: ");
+                    person.Nazwisko = Console.ReadLine();
+
+                    var osoby = db.Query<Person>(x => x.Imie == person.Imie && x.Nazwisko == person.Nazwisko).ToList();
+
+                    ListResult(osoby);
+                    Console.WriteLine();
+                    Console.WriteLine("Nacisnij ENTER by wrocic do menu.");
+                    Console.ReadLine();
+                    db.Close();
                 }
 
                 db.Close();
