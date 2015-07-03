@@ -80,6 +80,7 @@ namespace db4o
                 Console.WriteLine("0 -> Wyswietlenie danych");
                 Console.WriteLine("1 -> Wprowadzenie nowej osoby");
                 Console.WriteLine("2 -> Wyszukanie osoby");
+                Console.WriteLine("3 -> Update");
                 Console.WriteLine("9 -> WYJSCIE");
                 Console.WriteLine();
 
@@ -114,6 +115,20 @@ namespace db4o
                     person.Imie = Console.ReadLine();
                     Console.Write("\nPodaj nazwisko:\n");
                     person.Nazwisko = Console.ReadLine();
+
+                    try //sprawdzenie czy dany wpis juz jest w bazie i czy mozna dodac nowy
+                    {
+                        var osoby = db.Query<Person>(x => x.Imie == person.Imie && x.Nazwisko == person.Nazwisko).ToList();
+                        if (person.Imie == osoby.FirstOrDefault().Imie && person.Nazwisko == osoby.FirstOrDefault().Nazwisko)
+                        {
+                            Console.WriteLine("Taka osoba juz istnieje w bazie, wracamy do menu.");
+                            Console.ReadLine();
+                            db.Close();
+                            continue;
+                        }
+                    }
+                    catch { };
+                    
 
                     Console.WriteLine("\nCzy chcesz dodać adres? [T/N]");
                     ConsoleKeyInfo takNie = Console.ReadKey();
@@ -186,12 +201,72 @@ namespace db4o
                     person.Nazwisko = Console.ReadLine();
 
                     var osoby = db.Query<Person>(x => x.Imie == person.Imie && x.Nazwisko == person.Nazwisko).ToList();
-
+                    
                     ListResult(osoby);
                     Console.WriteLine();
                     Console.WriteLine("Nacisnij ENTER by wrocic do menu.");
                     Console.ReadLine();
                     db.Close();
+                }
+
+                else if (cki.Key == ConsoleKey.D3) //update
+                {
+                    Console.Clear();
+                    var person = new Person();
+                    Console.WriteLine("Podaj dane szukanej osoby.");
+                    Console.WriteLine("Imie: ");
+                    person.Imie = Console.ReadLine();
+                    Console.WriteLine("Nazwisko: ");
+                    person.Nazwisko = Console.ReadLine();
+
+                    var osoby = db.Query<Person>(x => x.Imie == person.Imie && x.Nazwisko == person.Nazwisko).ToList();
+                    ListResult(osoby);
+                    Console.WriteLine();
+
+                    Person p = osoby.First();
+                    Address a = p.Adres;
+                    List<Phone> ph = p.Telefon.ToList();
+
+                    Console.Write("Podaj nowe imie:\n");
+                    p.Imie = Console.ReadLine();
+                    Console.Write("\nPodaj nowe nazwisko:\n");
+                    p.Nazwisko = Console.ReadLine();
+                    Console.WriteLine("\n\nPodaj ulice:");
+                    a.Ulica = Console.ReadLine();
+                    Console.WriteLine("\nPodaj miasto:");
+                    a.Miasto = Console.ReadLine();
+
+                    foreach (Phone tel in ph)
+                    {
+                        Console.WriteLine("Podaj numer:");
+                        tel.Numer = int.Parse(Console.ReadLine());
+
+                    }
+
+                    try
+                    {
+                        db.Store(p.Telefon);
+                        db.Store(p);
+                        db.Store(a);
+                        
+
+                        db.Commit();
+                        Console.WriteLine();
+                        Console.WriteLine("Dane zostaly zapisane poprawnie. Wracamy do menu.");
+                        Console.ReadLine();
+                        db.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Wpis nie zostal dodany");
+                        Console.WriteLine(e);
+                        Console.ReadLine();
+                    }
+
+                    finally
+                    {
+                        db.Close();
+                    }
                 }
 
                 db.Close();
