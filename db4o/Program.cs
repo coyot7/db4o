@@ -225,7 +225,7 @@ namespace db4o
 
                     Person p = osoby.First();
                     Address a = p.Adres;
-                    List<Phone> ph = p.Telefon.ToList();
+                    List<Phone> ph = p.Telefon;
 
                     Console.Write("Podaj nowe imie:\n");
                     p.Imie = Console.ReadLine();
@@ -236,37 +236,43 @@ namespace db4o
                     Console.WriteLine("\nPodaj miasto:");
                     a.Miasto = Console.ReadLine();
 
-                    foreach (Phone tel in ph)
+                    int iloscTelefonow = p.Telefon.Count;
+                    for (int i = 0; i < iloscTelefonow; i++)
                     {
-                        Console.WriteLine("Podaj numer:");
-                        tel.Numer = int.Parse(Console.ReadLine());
-
-                    }
-
-                    try
-                    {
-                        db.Store(p.Telefon);
-                        db.Store(p);
-                        db.Store(a);
+                        p.Telefon.RemoveAt(0);
+                        Console.WriteLine("Wprowadz nowy telefon:");
+                        Phone telefon = new Phone();
+                        telefon.Numer = int.Parse(Console.ReadLine());
                         
-
-                        db.Commit();
-                        Console.WriteLine();
-                        Console.WriteLine("Dane zostaly zapisane poprawnie. Wracamy do menu.");
-                        Console.ReadLine();
-                        db.Close();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Wpis nie zostal dodany");
-                        Console.WriteLine(e);
-                        Console.ReadLine();
+                        Console.WriteLine("Wprowadz nowego operatora:");
+                        telefon.operatorTel = Console.ReadLine();
+                        p.Telefon.Add(telefon);
                     }
 
-                    finally
-                    {
-                        db.Close();
-                    }
+                        try
+                        {
+                            db.Store(p);
+                            db.Store(p.Telefon);
+                            db.Store(a);
+
+
+                            db.Commit();
+                            Console.WriteLine();
+                            Console.WriteLine("Dane zostaly zapisane poprawnie. Wracamy do menu.");
+                            Console.ReadLine();
+                            db.Close();
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Wpis nie zostal dodany");
+                            Console.WriteLine(e);
+                            Console.ReadLine();
+                        }
+
+                        finally
+                        {
+                            db.Close();
+                        }
                 }
 
                 db.Close();
