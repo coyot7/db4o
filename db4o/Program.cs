@@ -81,6 +81,7 @@ namespace db4o
                 Console.WriteLine("1 -> Wprowadzenie nowej osoby");
                 Console.WriteLine("2 -> Wyszukanie osoby");
                 Console.WriteLine("3 -> Update");
+                Console.WriteLine("4 -> Usun wpis");
                 Console.WriteLine("9 -> WYJSCIE");
                 Console.WriteLine();
 
@@ -109,6 +110,7 @@ namespace db4o
                 else if (cki.Key == ConsoleKey.D1) //dodawanie
                 {
                     var person = new Person();
+                    var address = new Address();
                     person.Telefon = new List<Phone>();
                     Console.Clear();
                     Console.Write("Podaj imie:\n");
@@ -134,7 +136,7 @@ namespace db4o
                     ConsoleKeyInfo takNie = Console.ReadKey();
                     if (takNie.Key == ConsoleKey.T)
                     {
-                        var address = new Address();
+                        address = new Address();
                         Console.WriteLine("\n\nPodaj ulice:");
                         address.Ulica = Console.ReadLine();
                         Console.WriteLine("\nPodaj miasto:");
@@ -273,6 +275,80 @@ namespace db4o
                         {
                             db.Close();
                         }
+                }
+                else if (cki.Key == ConsoleKey.D4) //usuwanie wpisu
+                {
+                    Console.Clear();
+                    var person = new Person();
+                    Console.WriteLine("Podaj dane szukanej osoby.");
+                    Console.WriteLine("Imie: ");
+                    person.Imie = Console.ReadLine();
+                    Console.WriteLine("Nazwisko: ");
+                    person.Nazwisko = Console.ReadLine();
+
+                    var osoby = db.Query<Person>(x => x.Imie == person.Imie && x.Nazwisko == person.Nazwisko).ToList();
+
+                    try //sprawdzenie czy dany wpis istnieje
+                    {
+                        if (person.Imie == osoby.FirstOrDefault().Imie && person.Nazwisko == osoby.FirstOrDefault().Nazwisko)
+                        {
+                            Console.WriteLine("Taka osoba juz istnieje w bazie, wracamy do menu.");
+
+
+                            ListResult(osoby);
+                            Console.WriteLine();
+
+                            Person p = osoby.First();
+                            Address a = p.Adres;
+                            List<Phone> ph = p.Telefon;
+
+
+                            int iloscWpisowTel = p.Telefon.Count;
+                            for (int i = 0; i < iloscWpisowTel; i++)
+                            {
+                                p.Telefon.RemoveAt(0);
+                            }
+
+                            try
+                            {
+                                db.Store(p);
+                                db.Store(p.Telefon);
+                                if (a != null)
+                                {
+                                    db.Delete(a);
+                                }
+                                db.Delete(p);
+
+                                db.Commit();
+                                Console.WriteLine();
+                                Console.WriteLine("Wpis zostal usuniety. Wracamy do menu.");
+                                Console.ReadLine();
+                                db.Close();
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine("Wpis nie zostal usuniety poprawnie");
+                                Console.WriteLine(e);
+                                Console.ReadLine();
+                            }
+
+                            finally
+                            {
+                                db.Close();
+                            }
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Nie odnalazlem wpisu, wracamy do menu");
+                            Console.ReadLine();
+                        }
+                        }
+                    catch {
+
+                        Console.WriteLine("Nie odnalazlem wpisu, wracamy do menu");
+                        Console.ReadLine();
+                    };
                 }
 
                 db.Close();
